@@ -1,6 +1,7 @@
 import { ref, onUnmounted } from 'vue';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '@/stores/auth';
+import { getBackendBaseUrl } from '@/utils/backendUrl';
 import type { Message, Notification } from '@/types';
 
 const socket = ref<Socket | null>(null);
@@ -14,8 +15,9 @@ export function useSocket() {
   function connect() {
     if (socket.value?.connected || !auth.accessToken) return;
 
-    socket.value = io(`${import.meta.env.VITE_WS_URL || 'http://localhost:3000'}/events`, {
+    socket.value = io(`${getBackendBaseUrl()}/events`, {
       auth: { token: auth.accessToken },
+      path: '/socket.io',
     });
 
     socket.value.on('notification:new', (data: Notification & { unreadCount: number }) => {

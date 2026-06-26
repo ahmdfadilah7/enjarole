@@ -4,6 +4,7 @@ import { useRouter, RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { uploadFile } from '@/utils';
 import { getApiErrorMessage } from '@/utils/errors';
+import AvatarSourcePicker from '@/components/AvatarSourcePicker.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -22,10 +23,10 @@ const traitsInput = ref('');
 const error = ref('');
 const loading = ref(false);
 
-async function handleAvatar(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (!file) return;
+function handleAvatarFile(file: File) {
+  error.value = '';
   avatarFile.value = file;
+  if (avatarPreview.value) URL.revokeObjectURL(avatarPreview.value);
   avatarPreview.value = URL.createObjectURL(file);
 }
 
@@ -147,13 +148,19 @@ async function submit() {
           </div>
           <div class="mb-4">
             <label class="mb-1.5 block text-sm font-bold uppercase tracking-wide">Avatar</label>
-            <div class="flex items-center gap-4">
-              <img v-if="avatarPreview" :src="avatarPreview" class="h-16 w-16 border-[3px] border-neo-black object-cover neo-shadow-sm" />
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <img
+                v-if="avatarPreview"
+                :src="avatarPreview"
+                class="h-16 w-16 border-[3px] border-neo-black object-cover neo-shadow-sm"
+                alt="Pratinjau avatar"
+              />
               <div v-else class="logo-box h-16 w-16 text-2xl">?</div>
-              <label class="btn-secondary cursor-pointer">
-                Pilih Gambar
-                <input type="file" accept="image/*" class="hidden" @change="handleAvatar" />
-              </label>
+              <AvatarSourcePicker
+                :disabled="loading"
+                @select="handleAvatarFile"
+                @error="error = $event"
+              />
             </div>
           </div>
         </div>

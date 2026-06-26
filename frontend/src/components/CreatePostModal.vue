@@ -118,7 +118,7 @@ import {
   isImageFile,
   isVideoFile,
 } from '@/utils';
-import { insertAtCursor, hasTextContent } from '@/utils/emoji';
+import { insertAtCursor, hasTextContent, readTextareaContent } from '@/utils/emoji';
 import EmojiPicker from './EmojiPicker.vue';
 import CameraCaptureModal from './CameraCaptureModal.vue';
 import { XMarkIcon, PhotoIcon, VideoCameraIcon, CameraIcon } from '@heroicons/vue/24/outline';
@@ -202,12 +202,20 @@ function removeMedia(index: number) {
   mediaItems.value.splice(index, 1);
 }
 
-async function onCameraCapture({ file, type }: { file: File; type: 'image' | 'video' }) {
+async function onCameraCapture({
+  file,
+  type,
+  durationSeconds,
+}: {
+  file: File;
+  type: 'image' | 'video';
+  durationSeconds?: number;
+}) {
   uploading.value = true;
   error.value = '';
   try {
     if (type === 'video') {
-      const duration = await getVideoDuration(file);
+      const duration = await getVideoDuration(file, durationSeconds);
       if (duration > MAX_POST_VIDEO_SECONDS) {
         error.value = `Video maksimal ${MAX_POST_VIDEO_SECONDS} detik`;
         return;
@@ -221,15 +229,8 @@ async function onCameraCapture({ file, type }: { file: File; type: 'image' | 'vi
   uploading.value = false;
 }
 
-function getSubmitContent(): string {
-  const fromRef = content.value;
-  const fromDom = contentTextareaRef.value?.value ?? '';
-  if (hasTextContent(fromDom)) return fromDom;
-  return fromRef;
-}
-
 async function submit() {
-  const text = getSubmitContent();
+  const text = readTextareaContent(contentTextareaRef.value, content);
   content.value = text;
 
   if (!hasTextContent(text) && !mediaItems.value.length) {
@@ -247,8 +248,10 @@ async function submit() {
     reset();
     open.value = false;
     emit('created');
-  } catch {
-    error.value = 'Gagal membuat posting';
+  } catch (err: unknown) {
+    const message =
+      (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+    error.value = Array.isArray(message) ? message[0] : message || 'Gagal membuat posting';
   }
   submitting.value = false;
 }

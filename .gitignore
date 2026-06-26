@@ -3,8 +3,7 @@ dist/
 .env
 .env.local
 .env.production
-deploy/certbot/
-*.log
+frontend/public/mediapipe/*.log
 .DS_Store
 Thumbs.db
 coverage/

@@ -113,7 +113,7 @@ function onPostCreated() {
 
 <template>
   <div
-    class="page-bg min-h-screen overflow-x-hidden"
+    class="page-bg min-h-screen"
     :class="{ 'sidebar-is-collapsed': sidebarCollapsed }"
     :style="sidebarStyle"
   >

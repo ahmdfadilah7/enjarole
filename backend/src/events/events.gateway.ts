@@ -12,11 +12,12 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { MessagingService } from '../messaging/messaging.service';
+import { resolveCorsOrigin } from '../common/cors-origin';
 
 @Injectable()
 @WebSocketGateway({
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: resolveCorsOrigin(),
     credentials: true,
   },
   namespace: '/events',

@@ -3,7 +3,7 @@ import axios from 'axios';
 export function getApiErrorMessage(error: unknown, fallback = 'Terjadi kesalahan'): string {
   if (axios.isAxiosError(error)) {
     if (!error.response) {
-      return 'Tidak dapat terhubung ke server. Pastikan backend berjalan di http://localhost:3000';
+      return 'Tidak dapat terhubung ke server. Pastikan backend berjalan dan dapat diakses dari jaringan ini.';
     }
 
     const data = error.response.data as { message?: string | string[] };

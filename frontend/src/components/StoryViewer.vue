@@ -21,7 +21,11 @@ let timer: ReturnType<typeof setInterval> | null = null;
 let holdTimer: ReturnType<typeof setTimeout> | null = null;
 let didHold = false;
 let pointerDownAt = 0;
-let touchStartY = 0;
+let pointerStartX = 0;
+let pointerStartY = 0;
+let tapZone: 'left' | 'center' | 'right' = 'center';
+
+const shellRef = ref<HTMLElement | null>(null);
 
 const currentGroup = computed(() => props.groups[groupIndex.value]);
 const currentStory = computed(() => currentGroup.value?.stories[storyIndex.value]);
@@ -155,67 +159,79 @@ function prev() {
     groupIndex.value--;
     storyIndex.value = props.groups[groupIndex.value].stories.length - 1;
   } else {
+    progress.value = 0;
+    playCurrentVideo();
     return;
   }
   playCurrentVideo();
 }
 
-function closeViewer() {
-  isClosing.value = true;
-  stopTimer();
-  setTimeout(() => emit('close'), 180);
+function zoneFromClientX(clientX: number): 'left' | 'center' | 'right' {
+  const el = shellRef.value;
+  if (!el) return 'center';
+  const rect = el.getBoundingClientRect();
+  const ratio = (clientX - rect.left) / rect.width;
+  if (ratio < 0.35) return 'left';
+  if (ratio > 0.65) return 'right';
+  return 'center';
 }
 
-function onPointerDown() {
+function onTapPointerDown(e: PointerEvent) {
+  if (e.button !== 0) return;
+  pointerStartX = e.clientX;
+  pointerStartY = e.clientY;
+  tapZone = zoneFromClientX(e.clientX);
   pointerDownAt = Date.now();
   didHold = false;
   clearHoldTimer();
   holdTimer = setTimeout(() => {
     didHold = true;
     pause();
-  }, 180);
+  }, 200);
+  (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 }
 
-function onPointerUp(side?: 'left' | 'right') {
+function onTapPointerUp(e: PointerEvent) {
   clearHoldTimer();
+
+  const elapsed = Date.now() - pointerDownAt;
+  const deltaX = Math.abs(e.clientX - pointerStartX);
+  const deltaY = e.clientY - pointerStartY;
+
   if (didHold) {
     resume();
+    swipeY.value = 0;
     return;
   }
-  const elapsed = Date.now() - pointerDownAt;
-  if (elapsed < 280 && side) {
-    if (side === 'left') prev();
-    else next();
-  }
-}
 
-function onTouchStart(e: TouchEvent) {
-  touchStartY = e.touches[0].clientY;
-  onPointerDown();
-}
+  const isTap = elapsed < 350 && deltaX < 40 && Math.abs(deltaY) < 40;
 
-function onTouchMove(e: TouchEvent) {
-  const delta = e.touches[0].clientY - touchStartY;
-  if (delta > 0) {
-    swipeY.value = delta;
-    if (delta > 40 && !isPaused.value) pause();
-  }
-}
-
-function onTouchEnd(e: TouchEvent) {
-  const delta = e.changedTouches[0].clientY - touchStartY;
-  onPointerUp();
-
-  if (delta > 100) {
+  if (isTap) {
+    if (tapZone === 'left') prev();
+    else if (tapZone === 'right') next();
+  } else if (deltaY > 120) {
     closeViewer();
-  } else {
-    swipeY.value = 0;
+    return;
   }
+
+  swipeY.value = 0;
+}
+
+function onTapPointerMove(e: PointerEvent) {
+  const deltaY = e.clientY - pointerStartY;
+  if (deltaY > 0) swipeY.value = deltaY;
 }
 
 function onPointerLeave() {
   clearHoldTimer();
   if (didHold) resume();
+  swipeY.value = 0;
+}
+
+function closeViewer() {
+  isClosing.value = true;
+  stopTimer();
+  setTimeout(() => emit('close'), 180);
 }
 
 watch([groupIndex, storyIndex], () => {
@@ -246,11 +262,9 @@ onUnmounted(() => {
     </button>
 
     <div
+      ref="shellRef"
       class="story-viewer-shell story-viewer-height mx-2 w-full max-w-[400px] transition-transform duration-150 sm:mx-4"
       :style="shellStyle"
-      @touchstart.passive="onTouchStart"
-      @touchmove.passive="onTouchMove"
-      @touchend="onTouchEnd"
     >
       <!-- Progress bars -->
       <div class="absolute left-0 right-0 top-0 z-20 flex gap-1 px-3 pt-3">
@@ -360,39 +374,16 @@ onUnmounted(() => {
         </Transition>
       </div>
 
-      <!-- Tap zones -->
-      <div class="absolute inset-0 z-10 flex">
-        <button
-          type="button"
-          class="w-[30%] cursor-pointer bg-transparent"
-          aria-label="Story sebelumnya"
-          @mousedown="onPointerDown"
-          @mouseup="onPointerUp('left')"
-          @mouseleave="onPointerLeave"
-          @touchstart.prevent="onPointerDown"
-          @touchend.prevent="onPointerUp('left')"
-        />
-        <button
-          type="button"
-          class="flex-1 cursor-pointer bg-transparent"
-          aria-label="Jeda"
-          @mousedown="onPointerDown"
-          @mouseup="onPointerUp()"
-          @mouseleave="onPointerLeave"
-          @touchstart.prevent="onPointerDown"
-          @touchend.prevent="onPointerUp()"
-        />
-        <button
-          type="button"
-          class="w-[30%] cursor-pointer bg-transparent"
-          aria-label="Story berikutnya"
-          @mousedown="onPointerDown"
-          @mouseup="onPointerUp('right')"
-          @mouseleave="onPointerLeave"
-          @touchstart.prevent="onPointerDown"
-          @touchend.prevent="onPointerUp('right')"
-        />
-      </div>
+      <!-- Tap zones (unified pointer — kiri: prev, kanan: next, tengah: tahan jeda) -->
+      <div
+        class="story-tap-layer absolute inset-0 z-[15] touch-none"
+        aria-hidden="true"
+        @pointerdown="onTapPointerDown"
+        @pointerup="onTapPointerUp"
+        @pointermove="onTapPointerMove"
+        @pointercancel="onPointerLeave"
+        @pointerleave="onPointerLeave"
+      />
 
       <!-- Story counter -->
       <div

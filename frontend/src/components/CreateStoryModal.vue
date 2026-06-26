@@ -327,7 +327,15 @@ function openCamera(mode: 'photo' | 'video') {
   showCamera.value = true;
 }
 
-async function onCameraCapture({ file, type }: { file: File; type: 'image' | 'video' }) {
+async function onCameraCapture({
+  file,
+  type,
+  durationSeconds,
+}: {
+  file: File;
+  type: 'image' | 'video';
+  durationSeconds?: number;
+}) {
   error.value = '';
   if (type === 'image') {
     clearImage();
@@ -336,7 +344,7 @@ async function onCameraCapture({ file, type }: { file: File; type: 'image' | 'vi
     return;
   }
   try {
-    const duration = await getVideoDuration(file);
+    const duration = await getVideoDuration(file, durationSeconds);
     if (duration > MAX_STORY_VIDEO_SECONDS) {
       error.value = `Video maksimal ${MAX_STORY_VIDEO_SECONDS} detik`;
       return;

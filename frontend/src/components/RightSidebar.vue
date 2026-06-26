@@ -60,8 +60,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <aside class="right-sidebar hidden w-[320px] shrink-0 lg:block">
-    <div class="sticky top-6 space-y-4">
+  <aside class="right-sidebar">
+    <div class="right-sidebar-inner">
       <!-- Profil singkat (login) -->
       <div v-if="auth.isAuthenticated && auth.character" class="card p-4">
         <RouterLink :to="`/@${auth.character.username}`" class="flex items-center gap-3">

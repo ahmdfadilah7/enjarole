@@ -1,4 +1,4 @@
 export function hasTextContent(value?: string | null): boolean {
-  if (!value) return false;
-  return /\S/u.test(value);
+  if (value == null) return false;
+  return value.replace(/\s/gu, '').length > 0;
 }

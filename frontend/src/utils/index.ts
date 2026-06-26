@@ -92,19 +92,53 @@ export function isImageFile(file: File): boolean {
   return file.type.startsWith('image/');
 }
 
-export function getVideoDuration(file: File): Promise<number> {
+export function getVideoDuration(file: File, fallbackSeconds?: number): Promise<number> {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
     video.preload = 'metadata';
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(video.src);
-      resolve(video.duration);
-    };
-    video.onerror = () => {
-      URL.revokeObjectURL(video.src);
+    const url = URL.createObjectURL(file);
+
+    const cleanup = () => URL.revokeObjectURL(url);
+
+    const finish = (duration: number) => {
+      cleanup();
+      if (Number.isFinite(duration) && duration > 0) {
+        resolve(duration);
+        return;
+      }
+      if (fallbackSeconds != null && fallbackSeconds > 0) {
+        resolve(fallbackSeconds);
+        return;
+      }
       reject(new Error('Gagal membaca video'));
     };
-    video.src = URL.createObjectURL(file);
+
+    video.onloadedmetadata = () => {
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        finish(video.duration);
+        return;
+      }
+      // WebM dari MediaRecorder sering melaporkan duration = Infinity
+      video.currentTime = Number.MAX_SAFE_INTEGER;
+    };
+
+    video.ontimeupdate = () => {
+      video.ontimeupdate = null;
+      const duration = video.duration;
+      video.pause();
+      finish(duration);
+    };
+
+    video.onerror = () => {
+      cleanup();
+      if (fallbackSeconds != null && fallbackSeconds > 0) {
+        resolve(fallbackSeconds);
+        return;
+      }
+      reject(new Error('Gagal membaca video'));
+    };
+
+    video.src = url;
   });
 }
 

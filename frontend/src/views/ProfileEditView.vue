@@ -7,6 +7,7 @@ import { getApiErrorMessage } from '@/utils/errors';
 import { normalizeUsername, validateUsername } from '@/utils/username';
 import api from '@/api/client';
 import Avatar from '@/components/Avatar.vue';
+import AvatarSourcePicker from '@/components/AvatarSourcePicker.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -66,10 +67,9 @@ onUnmounted(() => {
   if (usernameCheckTimer) clearTimeout(usernameCheckTimer);
 });
 
-async function handleAvatar(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (!file) return;
+async function handleAvatarFile(file: File) {
   loading.value = true;
+  error.value = '';
   try {
     avatarUrl.value = await uploadFile(file);
   } catch {
@@ -118,12 +118,14 @@ async function submit() {
     <h1 class="mb-6 text-2xl font-bold logo-text">Edit Profil Karakter</h1>
 
     <form @submit.prevent="submit" class="card space-y-4 p-4 sm:p-6">
-      <div class="flex items-center gap-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <Avatar v-if="auth.character" :character="{ ...auth.character, avatarUrl }" size="lg" />
-        <label class="btn-secondary cursor-pointer">
-          Ganti Avatar
-          <input type="file" accept="image/*" class="hidden" @change="handleAvatar" />
-        </label>
+        <AvatarSourcePicker
+          file-label="Ganti Avatar"
+          :disabled="loading"
+          @select="handleAvatarFile"
+          @error="error = $event"
+        />
       </div>
 
       <div>
