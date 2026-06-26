@@ -1,0 +1,4 @@
+# Railway deployment
+# Connect repo and set root directory to backend
+# Add PostgreSQL, Redis plugins
+# Set environment variables from backend/.env.example
