@@ -52,7 +52,20 @@ EnjaRole/
 
 ## Documentation
 
+- **[Panduan Proyek](docs/PROJECT.md)** — teknologi, tema UI, plugin, konvensi kode, setup LAN (baca ini saat melanjutkan di device lain)
 - [Architecture](docs/architecture.md)
 - [API Contract (OpenAPI)](docs/api-contract.yaml)
 - [Wireframes](docs/wireframes.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
+
+## Melanjutkan di Device Lain
+
+```bash
+git pull
+docker compose up -d
+cd backend && cp .env.example .env   # sesuaikan jika belum ada .env
+cd backend && npm install && npx prisma generate && npx prisma migrate dev && npm run start:dev
+cd frontend && cp .env.example .env && npm install && npm run dev
+```
+
+Aturan Cursor AI ada di `.cursor/rules/` dan ikut ter-commit ke git.

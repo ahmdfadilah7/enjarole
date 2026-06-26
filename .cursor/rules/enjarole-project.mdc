@@ -1,0 +1,25 @@
+---
+description: Konteks dan konvensi proyek EnjaRole — baca sebelum mengubah kode
+alwaysApply: true
+---
+
+# EnjaRole
+
+Jejaring sosial karakter roleplay (1 akun = 1 karakter). Stack: **Vue 3 + Vite + Pinia + Tailwind v4** (frontend), **NestJS + Prisma + PostgreSQL + Redis + MinIO + Socket.io** (backend). UI Bahasa Indonesia, gaya **neobrutalism** (`neo-*` di `frontend/src/style.css`).
+
+**Dokumentasi lengkap:** `docs/PROJECT.md` — teknologi, tema, plugin, fitur, setup LAN, konvensi.
+
+## Konvensi wajib
+
+- Frontend: `<script setup lang="ts">`, composable `useXxx.ts`, komponen PascalCase, tipe di `types/index.ts`
+- Backend: modul NestJS (module/controller/service/DTO), `toPublicCharacter()` untuk response publik, snake_case DB / camelCase TS
+- API prefix `/api`, socket namespace `/events`, upload MinIO `uploads/{uuid}.ext`
+- Styling: pakai token `neo-*` / `primary-*`, border 3px hitam + offset shadow — jangan tambah library UI baru
+- Error UI: `getApiErrorMessage()` (Indonesia). HTTP: `api/client.ts`. Socket: `useSocket.ts` + `getBackendBaseUrl()`
+- Kamera: MediaPipe (`useFaceLandmarks`), filter di `data/`, kartun Adventurer via DiceBear (`adventurerAvatarGenerator.ts`) — hanya mode foto
+- Minimalkan scope diff; ikuti pola file sekitar; jangan over-engineer
+
+## Dev
+
+- Infra: `docker compose up -d`. Backend `:3000`, frontend `:5173`, proxy Vite `/api` + `/socket.io`
+- `.env` tidak di git — salin dari `.env.example`. LAN: `host: true` Vite, backend `0.0.0.0`, `MINIO_PUBLIC_URL` pakai IP PC

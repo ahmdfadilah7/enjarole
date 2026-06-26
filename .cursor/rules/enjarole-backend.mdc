@@ -1,0 +1,15 @@
+---
+description: Konvensi NestJS/Prisma EnjaRole
+globs: backend/**/*
+alwaysApply: false
+---
+
+# Backend EnjaRole
+
+- Fitur baru: `XxxModule` → `XxxController` → `XxxService` → DTO dengan `class-validator` + `@ApiProperty`
+- Guard: `JwtAuthGuard` atau `OptionalJwtAuthGuard`; user via `@CurrentUser()` / `@OptionalCurrentUser()`
+- Prisma: ubah `schema.prisma` → `npx prisma migrate dev`; kolom DB snake_case (`@map`)
+- Jangan expose `email`, `passwordHash`, `refreshToken` — gunakan `toPublicCharacter()` dari `common/types.ts`
+- Media: presigned URL via `MediaService` (S3 client → MinIO); `MINIO_PUBLIC_URL` untuk URL publik
+- Real-time: emit lewat `EventsGateway.emitToCharacter()`; presence Redis key `presence:{characterId}`
+- CORS dev LAN: `common/cors-origin.ts` — jangan hardcode hanya localhost di fitur baru

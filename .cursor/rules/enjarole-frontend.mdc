@@ -1,0 +1,17 @@
+---
+description: Konvensi Vue 3 / Tailwind EnjaRole
+globs: frontend/**/*
+alwaysApply: false
+---
+
+# Frontend EnjaRole
+
+- SFC: `<script setup lang="ts">`; logika reusable → `composables/useXxx.ts`
+- State global: Pinia (`stores/`). Route profil: `/@:username`
+- API: `api/client.ts` (jangan axios mentah). Error: `utils/errors.ts` (Bahasa Indonesia)
+- Socket: `useSocket.ts`, `getBackendBaseUrl()` dari `utils/backendUrl.ts`, path `/socket.io`
+- Tema: Tailwind v4 via `@theme` di `style.css` — kelas `neo-*`, `btn-primary`, `card`, `neo-modal`
+- Ikon: `@heroicons/vue` outline. `@headlessui/vue` terpasang tapi belum dipakai — prefer pola CSS existing
+- Kamera: `CameraCaptureModal.vue` + `useDeviceCamera` + `useFaceLandmarks`; efek di `data/cameraFaceEffects.ts`
+- Kartun Adventurer: `useCartoonGenerator` + DiceBear — jangan kembali ke filter canvas / ONNX
+- MediaPipe WASM: di-copy oleh `scripts/copy-mediapipe-wasm.mjs` — jangan commit manual ke `public/mediapipe/`
