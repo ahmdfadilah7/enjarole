@@ -111,18 +111,18 @@ onMounted(() => {
     </div>
 
     <div class="flex items-center justify-between gap-2">
-      <div class="flex gap-2">
+      <div class="flex min-w-0 gap-1.5 sm:gap-2">
         <button
           v-if="isLoggedIn"
           @click="switchMode('following')"
-          class="px-5 py-2 text-sm transition-all"
+          class="px-3 py-1.5 text-xs transition-all sm:px-5 sm:py-2 sm:text-sm"
           :class="mode === 'following' ? 'pill-active' : 'pill-inactive'"
         >
           Following
         </button>
         <button
           @click="switchMode('explore')"
-          class="px-5 py-2 text-sm transition-all"
+          class="px-3 py-1.5 text-xs transition-all sm:px-5 sm:py-2 sm:text-sm"
           :class="mode === 'explore' ? 'pill-active' : 'pill-inactive'"
         >
           Explore
@@ -131,7 +131,7 @@ onMounted(() => {
       <button
         v-if="isLoggedIn"
         @click="openCreatePostModal"
-        class="fab h-11 w-11 shrink-0"
+        class="fab hidden h-11 w-11 shrink-0 sm:flex"
         title="Buat posting"
       >
         <PlusIcon class="h-6 w-6" />

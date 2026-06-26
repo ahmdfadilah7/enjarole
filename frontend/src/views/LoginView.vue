@@ -11,7 +11,7 @@
         <p class="mt-3 text-sm font-bold uppercase tracking-widest text-neo-black/70">Masuk sebagai karaktermu</p>
       </div>
 
-      <form @submit.prevent="submit" class="card p-8">
+      <form @submit.prevent="submit" class="card p-5 sm:p-8">
         <div class="mb-4">
           <label class="mb-2 block text-sm font-bold uppercase tracking-wide">Email</label>
           <input v-model="email" type="email" required class="input-field" placeholder="nama@email.com" />

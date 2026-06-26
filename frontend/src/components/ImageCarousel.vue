@@ -15,15 +15,32 @@
       <div
         v-for="(url, i) in urls"
         :key="i"
-        class="w-full shrink-0 snap-center"
+        class="relative w-full shrink-0 snap-center"
       >
+        <video
+          v-if="isVideoUrl(url)"
+          :ref="(el) => setVideoRef(el as HTMLVideoElement | null, i)"
+          :src="url"
+          class="aspect-square w-full object-cover"
+          controls
+          playsinline
+          preload="metadata"
+          @play="onVideoPlay(i)"
+        />
         <img
+          v-else
           :src="url"
           class="aspect-square w-full object-cover"
           loading="lazy"
-          :alt="`Gambar ${i + 1}`"
+          :alt="`Media ${i + 1}`"
           draggable="false"
         />
+        <span
+          v-if="isVideoUrl(url)"
+          class="pointer-events-none absolute left-3 top-3 neo-tag text-[10px]"
+        >
+          Video
+        </span>
       </div>
     </div>
 
@@ -32,7 +49,7 @@
         v-show="activeIndex > 0"
         type="button"
         class="carousel-arrow left-2"
-        aria-label="Gambar sebelumnya"
+        aria-label="Media sebelumnya"
         @click="goTo(activeIndex - 1)"
       >
         <ChevronLeftIcon class="h-5 w-5" />
@@ -41,7 +58,7 @@
         v-show="activeIndex < urls.length - 1"
         type="button"
         class="carousel-arrow right-2"
-        aria-label="Gambar berikutnya"
+        aria-label="Media berikutnya"
         @click="goTo(activeIndex + 1)"
       >
         <ChevronRightIcon class="h-5 w-5" />
@@ -54,7 +71,7 @@
           type="button"
           class="carousel-dot"
           :class="i === activeIndex ? 'carousel-dot-active' : ''"
-          :aria-label="`Ke gambar ${i + 1}`"
+          :aria-label="`Ke media ${i + 1}`"
           @click="goTo(i)"
         />
       </div>
@@ -65,21 +82,42 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
+import { isVideoUrl } from '@/utils';
 
 defineProps<{ urls: string[] }>();
 
 const trackRef = ref<HTMLElement | null>(null);
 const activeIndex = ref(0);
+const videoRefs = ref<(HTMLVideoElement | null)[]>([]);
+
+function setVideoRef(el: HTMLVideoElement | null, index: number) {
+  videoRefs.value[index] = el;
+}
+
+function pauseAllVideos() {
+  videoRefs.value.forEach((video) => video?.pause());
+}
+
+function onVideoPlay(active: number) {
+  videoRefs.value.forEach((video, i) => {
+    if (i !== active) video?.pause();
+  });
+}
 
 function onScroll() {
   const track = trackRef.value;
   if (!track || track.clientWidth === 0) return;
-  activeIndex.value = Math.round(track.scrollLeft / track.clientWidth);
+  const next = Math.round(track.scrollLeft / track.clientWidth);
+  if (next !== activeIndex.value) {
+    pauseAllVideos();
+    activeIndex.value = next;
+  }
 }
 
 function goTo(index: number) {
   const track = trackRef.value;
   if (!track) return;
+  pauseAllVideos();
   track.scrollTo({ left: index * track.clientWidth, behavior: 'smooth' });
   activeIndex.value = index;
 }

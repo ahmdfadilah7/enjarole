@@ -166,7 +166,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card flex h-[calc(100vh-8rem)] min-h-[520px] overflow-hidden">
+  <div class="card messages-panel flex overflow-hidden">
     <!-- Daftar percakapan -->
     <aside
       class="flex w-full shrink-0 flex-col border-r-[3px] border-neo-black md:w-[300px]"
@@ -365,7 +365,7 @@ onMounted(async () => {
           <div ref="messagesEndRef" class="h-1" />
         </div>
 
-        <form class="messages-composer flex items-center gap-2" @submit.prevent="sendMessage">
+        <form class="messages-composer flex flex-wrap items-center gap-2 sm:flex-nowrap" @submit.prevent="sendMessage">
           <EmojiPicker @select="onEmojiSelect" />
           <input
             ref="messageInputRef"

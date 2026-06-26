@@ -113,7 +113,7 @@ function onPostCreated() {
 
 <template>
   <div
-    class="page-bg min-h-screen"
+    class="page-bg min-h-screen overflow-x-hidden"
     :class="{ 'sidebar-is-collapsed': sidebarCollapsed }"
     :style="sidebarStyle"
   >
@@ -254,8 +254,8 @@ function onPostCreated() {
     <div class="app-main-area">
       <div class="app-content-row">
         <main
-          class="w-full shrink-0"
-          :class="isWideLayout ? 'max-w-3xl' : 'feed-column'"
+          class="w-full min-w-0 shrink-0"
+          :class="isWideLayout ? 'max-w-full lg:max-w-3xl' : 'feed-column'"
         >
           <RouterView />
         </main>
@@ -266,39 +266,60 @@ function onPostCreated() {
 
     <!-- Mobile bottom nav -->
     <nav class="neo-bottom-nav fixed bottom-0 left-0 right-0 z-40 lg:hidden">
-      <div class="flex justify-around px-2 py-2">
+      <div class="flex items-end justify-around px-1 pt-2">
         <template v-if="auth.isAuthenticated">
           <RouterLink
-            v-for="item in authNavItems"
+            v-for="item in authNavItems.slice(0, 2)"
             :key="item.to"
             :to="item.to"
-            class="relative flex flex-col items-center px-3 py-1.5 text-[10px] font-bold"
+            class="relative flex min-w-0 flex-1 flex-col items-center px-1 py-1 text-[10px] font-bold"
+            :class="isNavActive(item.to) ? 'text-neo-black' : 'text-neo-black/50'"
+          >
+            <component :is="item.icon" class="mb-0.5 h-6 w-6 shrink-0 stroke-[2.5]" />
+            <span class="truncate">{{ item.label }}</span>
+          </RouterLink>
+
+          <button
+            type="button"
+            class="mobile-nav-fab mx-1 shrink-0"
+            title="Buat Posting"
+            @click="handleCreatePost"
+          >
+            <PlusIcon class="h-6 w-6 stroke-[2.5]" />
+          </button>
+
+          <RouterLink
+            v-for="item in authNavItems.slice(2)"
+            :key="item.to"
+            :to="item.to"
+            class="relative flex min-w-0 flex-1 flex-col items-center px-1 py-1 text-[10px] font-bold"
             :class="isNavActive(item.to) ? 'text-neo-black' : 'text-neo-black/50'"
           >
             <img
               v-if="profileAvatarUrl(item)"
               :src="profileAvatarUrl(item)!"
               :alt="auth.character!.displayName"
-              class="mb-0.5 h-6 w-6 border-2 border-neo-black object-cover"
+              class="mb-0.5 h-6 w-6 shrink-0 border-2 border-neo-black object-cover"
             />
-            <component v-else :is="item.icon" class="mb-0.5 h-6 w-6 stroke-[2.5]" />
+            <component v-else :is="item.icon" class="mb-0.5 h-6 w-6 shrink-0 stroke-[2.5]" />
+            <span class="truncate">{{ item.label }}</span>
             <span
               v-if="item.badge && notificationsStore.unreadCount > 0"
-              class="badge-dot absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center text-[9px]"
+              class="badge-dot absolute right-1 top-0 flex h-4 min-w-4 items-center justify-center text-[9px]"
             >
               {{ notificationsStore.unreadCount > 9 ? '9+' : notificationsStore.unreadCount }}
             </span>
           </RouterLink>
         </template>
         <template v-else>
-          <RouterLink to="/feed" class="flex flex-col items-center px-3 py-1.5 text-[10px] font-bold text-neo-black">
+          <RouterLink to="/feed" class="flex flex-1 flex-col items-center px-2 py-1.5 text-[10px] font-bold text-neo-black">
             <HomeIcon class="mb-0.5 h-6 w-6 stroke-[2.5]" />
             Feed
           </RouterLink>
-          <RouterLink to="/login" class="flex flex-col items-center px-3 py-1.5 text-[10px] font-bold text-neo-black/50">
+          <RouterLink to="/login" class="flex flex-1 flex-col items-center px-2 py-1.5 text-[10px] font-bold text-neo-black/50">
             Masuk
           </RouterLink>
-          <RouterLink to="/register" class="flex flex-col items-center px-3 py-1.5 text-[10px] font-bold text-neo-black/50">
+          <RouterLink to="/register" class="flex flex-1 flex-col items-center px-2 py-1.5 text-[10px] font-bold text-neo-black/50">
             Daftar
           </RouterLink>
         </template>

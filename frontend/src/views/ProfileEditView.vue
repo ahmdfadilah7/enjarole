@@ -117,7 +117,7 @@ async function submit() {
   <div class="mx-auto max-w-lg">
     <h1 class="mb-6 text-2xl font-bold logo-text">Edit Profil Karakter</h1>
 
-    <form @submit.prevent="submit" class="card space-y-4 p-6">
+    <form @submit.prevent="submit" class="card space-y-4 p-4 sm:p-6">
       <div class="flex items-center gap-4">
         <Avatar v-if="auth.character" :character="{ ...auth.character, avatarUrl }" size="lg" />
         <label class="btn-secondary cursor-pointer">

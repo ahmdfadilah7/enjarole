@@ -7,7 +7,8 @@ import { useRequireAuth } from '@/composables/useRequireAuth';
 import type { Character, Post } from '@/types';
 import Avatar from '@/components/Avatar.vue';
 import FollowListModal from '@/components/FollowListModal.vue';
-import { Squares2X2Icon, ListBulletIcon } from '@heroicons/vue/24/outline';
+import { Squares2X2Icon, ListBulletIcon, PlayIcon } from '@heroicons/vue/24/solid';
+import { isVideoUrl } from '@/utils';
 
 const route = useRoute();
 const router = useRouter();
@@ -72,7 +73,7 @@ watch(() => route.params.username, () => {
   </div>
 
   <div v-else-if="profile" class="space-y-6">
-    <div class="card overflow-hidden p-6">
+    <div class="card overflow-hidden p-4 sm:p-6">
       <div class="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
         <Avatar :character="profile" size="lg" />
         <div class="flex-1 text-center sm:text-left">
@@ -153,14 +154,30 @@ watch(() => route.params.username, () => {
         v-for="post in posts"
         :key="post.id"
         :to="`/@${profile.username}/p/${post.id}`"
-        class="aspect-square overflow-hidden border-[3px] border-neo-black bg-neo-cream transition-all hover:-translate-y-0.5 neo-shadow-sm hover:neo-shadow"
+        class="relative aspect-square overflow-hidden border-[3px] border-neo-black bg-neo-cream transition-all hover:-translate-y-0.5 neo-shadow-sm hover:neo-shadow"
       >
+        <video
+          v-if="post.mediaUrls?.length && isVideoUrl(post.mediaUrls[0] as string)"
+          :src="post.mediaUrls[0] as string"
+          class="h-full w-full object-cover"
+          muted
+          playsinline
+          preload="metadata"
+        />
         <img
-          v-if="post.mediaUrls?.length"
+          v-else-if="post.mediaUrls?.length"
           :src="post.mediaUrls[0] as string"
           class="h-full w-full object-cover"
           loading="lazy"
         />
+        <div
+          v-if="post.mediaUrls?.length && isVideoUrl(post.mediaUrls[0] as string)"
+          class="pointer-events-none absolute inset-0 flex items-center justify-center bg-neo-black/25"
+        >
+          <div class="neo-icon-box h-10 w-10">
+            <PlayIcon class="h-5 w-5" />
+          </div>
+        </div>
         <div v-else class="flex h-full items-center justify-center p-2 text-center text-xs font-medium">
           {{ post.content.slice(0, 80) }}
         </div>

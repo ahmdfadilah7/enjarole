@@ -28,14 +28,35 @@
   --width-feed: 470px;
   --width-sidebar: 244px;
   --width-sidebar-collapsed: 72px;
+
+  --height-mobile-header: 3.5rem;
+  --height-mobile-nav: 4.25rem;
 }
 
 @layer base {
+  html {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply font-sans text-neo-black antialiased;
+    overflow-x: hidden;
     background-color: #fff9e6;
     background-image: radial-gradient(#0a0a0a 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  :root {
+    --app-mobile-top: calc(var(--height-mobile-header) + env(safe-area-inset-top, 0px));
+    --app-mobile-bottom: calc(var(--height-mobile-nav) + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      --app-mobile-top: 0px;
+      --app-mobile-bottom: 0px;
+    }
   }
 }
 
@@ -86,16 +107,34 @@
   .neo-header {
     @apply border-b-[3px] border-neo-black bg-neo-yellow;
     box-shadow: 0 4px 0 0 #0a0a0a;
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   .neo-bottom-nav {
     @apply border-t-[3px] border-neo-black bg-neo-yellow;
     box-shadow: 0 -4px 0 0 #0a0a0a;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-nav-fab {
+    @apply -mt-5 flex h-12 w-12 items-center justify-center border-[3px] border-neo-black bg-primary-300;
+    box-shadow: 4px 4px 0 0 #0a0a0a;
+  }
+
+  .mobile-nav-fab:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 0 #0a0a0a;
   }
 
   .input-field {
     @apply w-full border-[3px] border-neo-black bg-white px-4 py-2.5 text-sm font-medium placeholder:text-gray-500 focus:outline-none;
     box-shadow: 3px 3px 0 0 #0a0a0a;
+  }
+
+  @media (max-width: 1023px) {
+    .input-field {
+      font-size: 16px;
+    }
   }
 
   .input-field:focus {
@@ -167,6 +206,38 @@
   .story-viewer-shell {
     @apply relative overflow-hidden border-[4px] border-neo-black bg-neo-black;
     box-shadow: 12px 12px 0 0 #7bf1a8, 12px 12px 0 4px #0a0a0a;
+  }
+
+  @media (max-width: 639px) {
+    .story-viewer-shell {
+      box-shadow: 6px 6px 0 0 #7bf1a8, 6px 6px 0 3px #0a0a0a;
+    }
+
+    .story-viewer-mobile-h {
+      height: min(calc(100dvh - var(--app-mobile-top) - 2rem), 720px);
+    }
+  }
+
+  .story-viewer-height {
+    height: min(calc(100dvh - var(--app-mobile-top) - 2rem), 720px);
+  }
+
+  @media (min-width: 640px) {
+    .story-viewer-height {
+      height: min(90vh, 720px);
+    }
+  }
+
+  .messages-panel {
+    height: calc(100dvh - var(--app-mobile-top) - var(--app-mobile-bottom) - 1.5rem);
+    min-height: 280px;
+  }
+
+  @media (min-width: 1024px) {
+    .messages-panel {
+      height: calc(100vh - 8rem);
+      min-height: 520px;
+    }
   }
 
   .story-progress-track {
@@ -289,12 +360,20 @@
   }
 
   .neo-modal-backdrop {
-    @apply fixed inset-0 z-50 flex items-center justify-center bg-neo-black/40 p-4;
+    @apply fixed inset-0 z-50 flex items-end justify-center bg-neo-black/40 p-0 sm:items-center sm:p-4;
   }
 
   .neo-modal {
     @apply w-full max-w-lg overflow-hidden border-[3px] border-neo-black bg-white;
     box-shadow: 8px 8px 0 0 #0a0a0a;
+    max-height: min(90dvh, calc(100dvh - var(--app-mobile-top) - 1rem));
+    overflow-y: auto;
+  }
+
+  @media (min-width: 640px) {
+    .neo-modal {
+      max-height: 90dvh;
+    }
   }
 
   .neo-modal-header {
@@ -373,6 +452,69 @@
   .messages-composer {
     @apply border-t-[3px] border-neo-black bg-white p-3;
     box-shadow: 0 -4px 0 0 #7bf1a8;
+  }
+
+  .camera-modal {
+    @apply fixed inset-0 z-[70] flex flex-col bg-neo-black;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .camera-modal-header {
+    @apply flex items-center justify-between px-4 py-3;
+  }
+
+  .camera-preview-wrap {
+    @apply relative mx-auto flex w-full max-w-lg flex-1 items-center justify-center overflow-hidden px-3;
+  }
+
+  .camera-preview {
+    @apply h-full max-h-full w-full border-[3px] border-neo-black object-cover;
+    box-shadow: 6px 6px 0 0 #7bf1a8;
+    aspect-ratio: 3 / 4;
+    max-height: min(70dvh, 640px);
+  }
+
+  .camera-recording-badge {
+    @apply absolute left-6 top-4 flex items-center gap-2 border-[2px] border-neo-black bg-neo-pink px-3 py-1 text-xs font-bold text-neo-black;
+    box-shadow: 3px 3px 0 0 #0a0a0a;
+  }
+
+  .camera-rec-dot {
+    @apply h-2 w-2 rounded-full bg-neo-black;
+    animation: camera-rec-blink 1s ease-in-out infinite;
+  }
+
+  .camera-error {
+    @apply absolute inset-x-6 bottom-4 border-[3px] border-neo-black bg-neo-yellow px-3 py-2 text-center text-sm font-bold;
+    box-shadow: 4px 4px 0 0 #0a0a0a;
+  }
+
+  .camera-mode-tabs {
+    @apply mx-auto mb-2 flex gap-2 px-4;
+  }
+
+  .camera-mode-tab {
+    @apply flex-1 border-[3px] border-neo-black bg-white/90 py-2 text-xs font-bold uppercase;
+    box-shadow: 3px 3px 0 0 #0a0a0a;
+  }
+
+  .camera-mode-tab-active {
+    @apply bg-primary-300;
+  }
+
+  .camera-controls {
+    @apply flex flex-col items-center gap-3 px-4 pb-6 pt-2;
+  }
+
+  .camera-shutter {
+    @apply h-16 w-16 rounded-full border-[4px] border-neo-black bg-neo-yellow;
+    box-shadow: 0 0 0 4px #fff, 4px 4px 0 0 #0a0a0a;
+  }
+
+  .camera-shutter-recording {
+    @apply bg-neo-pink;
+    animation: camera-rec-blink 1s ease-in-out infinite;
   }
 
   .neo-icon-box {
@@ -510,19 +652,33 @@
   }
 
   .app-main-area {
-    @apply min-h-screen pb-20 transition-[padding] duration-200 ease-in-out lg:pb-0;
+    min-height: 100dvh;
+    padding-bottom: calc(var(--app-mobile-bottom) + 0.25rem);
     padding-left: 0;
+    transition: padding 0.2s ease-in-out;
   }
 
   @media (min-width: 1024px) {
     .app-main-area {
+      min-height: 100vh;
+      padding-bottom: 0;
       padding-left: var(--width-sidebar-current, var(--width-sidebar));
     }
   }
 
   .app-content-row {
-    @apply mx-auto flex w-full justify-center gap-8 px-4 py-6;
+    @apply mx-auto flex w-full max-w-full justify-center gap-8 px-3 py-4 sm:px-4 sm:py-6;
     max-width: calc(var(--width-sidebar-current, var(--width-sidebar)) + var(--width-feed) + 320px + 4rem);
+  }
+
+  @media (max-width: 1023px) {
+    .app-content-row {
+      max-width: 100%;
+    }
+
+    .feed-column {
+      max-width: 100%;
+    }
   }
 }
 
@@ -582,4 +738,9 @@
     transform: translateY(-4px);
     opacity: 1;
   }
+}
+
+@keyframes camera-rec-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }

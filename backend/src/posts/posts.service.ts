@@ -17,7 +17,7 @@ export class PostsService {
     const mediaUrls = dto.mediaUrls ?? [];
 
     if (!hasTextContent(content) && mediaUrls.length === 0) {
-      throw new BadRequestException('Posting harus berisi teks, emoticon, atau gambar');
+      throw new BadRequestException('Posting harus berisi teks, emoticon, gambar, atau video');
     }
 
     const post = await this.prisma.post.create({

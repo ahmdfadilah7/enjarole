@@ -100,6 +100,11 @@
               <span class="text-sm font-bold">Pilih Gambar</span>
               <input type="file" accept="image/*" class="hidden" @change="onImagePick" />
             </label>
+            <div v-if="!imagePreview" class="mt-2 grid grid-cols-2 gap-2">
+              <button type="button" class="btn-secondary text-xs" @click="openCamera('photo')">
+                Ambil Foto
+              </button>
+            </div>
             <button v-else type="button" @click="clearImage" class="btn-secondary w-full text-xs">
               Ganti Gambar
             </button>
@@ -113,6 +118,11 @@
               <span class="mt-1 text-xs font-medium text-neo-black/60">Maks. 30 detik</span>
               <input type="file" accept="video/*" class="hidden" @change="onVideoPick" />
             </label>
+            <div v-if="!videoPreview" class="mt-2 grid grid-cols-2 gap-2">
+              <button type="button" class="btn-secondary text-xs" @click="openCamera('video')">
+                Rekam Video
+              </button>
+            </div>
             <div v-else class="flex items-center justify-between gap-2">
               <span class="neo-tag text-xs">{{ videoDuration.toFixed(1) }}s</span>
               <button type="button" @click="clearVideo" class="btn-secondary text-xs">
@@ -182,12 +192,20 @@
         </div>
       </div>
     </div>
+
+    <CameraCaptureModal
+      v-model:open="showCamera"
+      :capture-mode="cameraMode"
+      :max-video-seconds="MAX_STORY_VIDEO_SECONDS"
+      @capture="onCameraCapture"
+    />
   </Teleport>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import api from '@/api/client';
+import CameraCaptureModal from './CameraCaptureModal.vue';
 import EmojiPicker from './EmojiPicker.vue';
 import { insertAtCursor, hasTextContent } from '@/utils/emoji';
 import {
@@ -225,6 +243,8 @@ const backgroundColor = ref<string>(STORY_BG_COLORS[0]);
 const uploading = ref(false);
 const submitting = ref(false);
 const error = ref('');
+const showCamera = ref(false);
+const cameraMode = ref<'photo' | 'video'>('photo');
 const textAreaRef = ref<HTMLTextAreaElement | null>(null);
 const overlayInputRef = ref<HTMLInputElement | null>(null);
 
@@ -300,6 +320,34 @@ function clearVideo() {
   videoFile.value = null;
   videoPreview.value = '';
   videoDuration.value = 0;
+}
+
+function openCamera(mode: 'photo' | 'video') {
+  cameraMode.value = mode;
+  showCamera.value = true;
+}
+
+async function onCameraCapture({ file, type }: { file: File; type: 'image' | 'video' }) {
+  error.value = '';
+  if (type === 'image') {
+    clearImage();
+    imageFile.value = file;
+    imagePreview.value = URL.createObjectURL(file);
+    return;
+  }
+  try {
+    const duration = await getVideoDuration(file);
+    if (duration > MAX_STORY_VIDEO_SECONDS) {
+      error.value = `Video maksimal ${MAX_STORY_VIDEO_SECONDS} detik`;
+      return;
+    }
+    clearVideo();
+    videoFile.value = file;
+    videoDuration.value = Math.ceil(duration);
+    videoPreview.value = URL.createObjectURL(file);
+  } catch {
+    error.value = 'Gagal memproses video dari kamera';
+  }
 }
 
 async function submit() {

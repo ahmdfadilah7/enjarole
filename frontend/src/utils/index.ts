@@ -74,8 +74,23 @@ export const STORY_BG_COLORS = [
 ] as const;
 
 export const MAX_STORY_VIDEO_SECONDS = 30;
+export const MAX_POST_VIDEO_SECONDS = 60;
 export const STORY_IMAGE_SECONDS = 5;
 export const STORY_TEXT_SECONDS = 7;
+
+const VIDEO_URL_PATTERN = /\.(mp4|webm|mov|m4v|ogv)(\?|$)/i;
+
+export function isVideoFile(file: File): boolean {
+  return file.type.startsWith('video/');
+}
+
+export function isVideoUrl(url: string): boolean {
+  return VIDEO_URL_PATTERN.test(url);
+}
+
+export function isImageFile(file: File): boolean {
+  return file.type.startsWith('image/');
+}
 
 export function getVideoDuration(file: File): Promise<number> {
   return new Promise((resolve, reject) => {

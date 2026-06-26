@@ -246,7 +246,7 @@ onUnmounted(() => {
     </button>
 
     <div
-      class="story-viewer-shell mx-4 h-[min(90vh,720px)] w-full max-w-[400px] transition-transform duration-150"
+      class="story-viewer-shell story-viewer-height mx-2 w-full max-w-[400px] transition-transform duration-150 sm:mx-4"
       :style="shellStyle"
       @touchstart.passive="onTouchStart"
       @touchmove.passive="onTouchMove"
@@ -403,7 +403,7 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <p class="pointer-events-none absolute bottom-6 text-xs font-medium text-white/50">
+    <p class="pointer-events-none absolute bottom-4 hidden px-4 text-center text-xs font-medium text-white/50 sm:block">
       Geser ke bawah atau tekan Esc untuk tutup · Ketuk kiri/kanan · Tahan untuk jeda
     </p>
   </div>

@@ -69,7 +69,7 @@
           <p class="text-sm">{{ comment.content }}</p>
         </div>
       </div>
-      <form v-if="auth.isAuthenticated" @submit.prevent="submitComment" class="mt-2 flex gap-2">
+      <form v-if="auth.isAuthenticated" @submit.prevent="submitComment" class="mt-2 flex flex-col gap-2 sm:flex-row">
         <input
           v-model="newComment"
           type="text"
