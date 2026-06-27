@@ -12,6 +12,7 @@
       />
     </label>
     <button
+      v-if="cameraAvailable"
       type="button"
       class="btn-secondary inline-flex items-center gap-1"
       :disabled="disabled"
@@ -20,6 +21,9 @@
       <CameraIcon class="h-5 w-5" />
       Kamera
     </button>
+    <p v-else class="text-xs font-medium text-neo-black/60">
+      Kamera tidak tersedia via IP LAN (butuh HTTPS). Gunakan pilih gambar.
+    </p>
 
     <CameraCaptureModal
       v-model:open="showCamera"
@@ -32,7 +36,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import CameraCaptureModal from './CameraCaptureModal.vue';
-import { isImageFile } from '@/utils';
+import { isCameraAvailable, isImageFile } from '@/utils';
 import { CameraIcon, PhotoIcon } from '@heroicons/vue/24/outline';
 
 withDefaults(
@@ -52,6 +56,7 @@ const emit = defineEmits<{
 }>();
 
 const showCamera = ref(false);
+const cameraAvailable = isCameraAvailable();
 
 function emitFile(file: File) {
   if (!isImageFile(file)) {

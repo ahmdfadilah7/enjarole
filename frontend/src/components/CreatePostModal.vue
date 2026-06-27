@@ -27,7 +27,7 @@
             <div v-for="(item, i) in mediaItems" :key="item.url" class="relative">
               <video
                 v-if="item.type === 'video'"
-                :src="item.url"
+                :src="resolveMediaUrl(item.url) ?? item.url"
                 class="h-24 w-24 border-[3px] border-neo-black bg-neo-black object-cover neo-shadow-sm"
                 muted
                 playsinline
@@ -35,7 +35,7 @@
               />
               <img
                 v-else
-                :src="item.url"
+                :src="resolveMediaUrl(item.url) ?? item.url"
                 class="h-24 w-24 border-[3px] border-neo-black object-cover neo-shadow-sm"
                 alt="Preview"
               />
@@ -113,6 +113,7 @@ import { ref, watch } from 'vue';
 import api from '@/api/client';
 import {
   uploadFile,
+  resolveMediaUrl,
   getVideoDuration,
   MAX_POST_VIDEO_SECONDS,
   isImageFile,

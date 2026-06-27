@@ -4,125 +4,181 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 const DEMO_PASSWORD = 'Demo1234!';
+const DEMO_EMAIL_DOMAIN = 'demo.enjarole';
 
-const sampleUsers = [
+type SampleUser = {
+  username: string;
+  displayName: string;
+  email: string;
+  bio: string;
+  backstory: string;
+  personalityTraits: string[];
+  avatarUrl: string;
+};
+
+const firstNames = [
+  'Aldric', 'Luna', 'Kaito', 'Seraphina', 'Magnus', 'Yuki', 'Rafael', 'Mira', 'Dante', 'Aria',
+  'Raka', 'Sinta', 'Bima', 'Nadia', 'Farhan', 'Elara', 'Thorne', 'Vera', 'Orion', 'Selene',
+  'Hiro', 'Cassandra', 'Erik', 'Lyra', 'Zephyr', 'Isolde', 'Caius', 'Nyx', 'Rowan', 'Freya',
+];
+
+const epithets = [
+  'stormwind', 'vesper', 'nightshade', 'ironforge', 'frost', 'sunleaf', 'cross', 'bloom', 'shade', 'star',
+  'ember', 'mistral', 'dawn', 'dusk', 'river', 'stone', 'flame', 'whisper', 'thorn', 'sky',
+  'moon', 'ash', 'vale', 'peak', 'glen', 'marsh', 'cliff', 'breeze', 'spark', 'rune',
+];
+
+const archetypes = [
   {
-    username: 'aldric_sw',
-    displayName: 'Aldric Stormwind',
-    email: 'aldric@demo.enjarole',
-    bio: 'Kesatria dari benteng utara. Menjaga perbatasan dan mencari rekan petualang.',
-    backstory: 'Lahir di desa pegunungan Greyhold, Aldric dilatih sejak kecil untuk menjadi penjaga kerajaan. Pedangnya, Dawnbreaker, diturunkan dari kakeknya.',
-    personalityTraits: ['Berani', 'Setia', 'Disiplin'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=aldric_sw',
+    role: 'Kesatria',
+    bio: (place: string) => `Penjaga ${place}. Bertarung demi yang lemah dan mencari rekan setia.`,
+    backstory: (name: string, place: string) =>
+      `${name} dilatih sejak muda di ${place}. Pedangnya adalah simbol sumpah yang tidak pernah ia langgar.`,
+    traits: [['Berani', 'Setia', 'Disiplin'], ['Tegas', 'Protektif', 'Jujur'], ['Stoik', 'Loyal', 'Taktis']],
   },
   {
-    username: 'luna_vesper',
-    displayName: 'Luna Vesper',
-    email: 'luna@demo.enjarole',
-    bio: 'Penyihir bulan yang menyukai ramuan dan astronomi.',
-    backstory: 'Dibesarkan di menara Silverveil, Luna belajar sihir dari buku kuno ibunya. Ia sering memetakan konstelasi untuk meramal cuaca sihir.',
-    personalityTraits: ['Cerdas', 'Tenang', 'Misterius'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=luna_vesper',
+    role: 'Penyihir',
+    bio: (place: string) => `Penyihir dari ${place} yang mempelajari mantra kuno dan ilusi.`,
+    backstory: (name: string, place: string) =>
+      `Di menara ${place}, ${name} menghabiskan tahun demi tahun mempelajari sihir dari buku-buku usang.`,
+    traits: [['Cerdas', 'Tenang', 'Misterius'], ['Penasaran', 'Fokus', 'Introvert'], ['Kreatif', 'Sabaran', 'Analitis']],
   },
   {
-    username: 'kaito_ren',
-    displayName: 'Kaito Ren',
-    email: 'kaito@demo.enjarole',
-    bio: 'Pencuri bayaran dengan hati yang tidak terduga.',
-    backstory: 'Mantan anggota guild bayangan, Kaito kini bekerja sendiri. Ia hanya mengambil kontrak yang menurutnya adil—meski dunia tidak selalu setuju.',
-    personalityTraits: ['Cepat', 'Licik', 'Humoris'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=kaito_ren',
+    role: 'Pencuri',
+    bio: (place: string) => `Bayangan ${place} yang hanya mengambil kontrak yang menurutnya adil.`,
+    backstory: (name: string, place: string) =>
+      `${name} tumbuh di jalanan ${place}. Kelincahannya menyelamatkan nyawanya lebih dari sekali.`,
+    traits: [['Cepat', 'Licik', 'Humoris'], ['Mandiri', 'Waswas', 'Praktis'], ['Fleksibel', 'Dingin', 'Setia']],
   },
   {
-    username: 'sera_bloom',
-    displayName: 'Seraphina Bloom',
-    email: 'sera@demo.enjarole',
-    bio: 'Pendeta hutan yang menyembuhkan luka fisik dan batin.',
-    backstory: 'Seraphina menemukan kuil kuno di balik air terjun Emerald Veil. Dari situlah ia belajar sihir penyembuhan yang diturunkan para druid purba.',
-    personalityTraits: ['Penyayang', 'Sabar', 'Optimis'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=sera_bloom',
+    role: 'Druid',
+    bio: (place: string) => `Penjaga alam dari ${place} yang mendengar bisikan hutan.`,
+    backstory: (name: string, place: string) =>
+      `${name} menemukan kuil kuno di ${place} dan belajar sihir alam dari roh-roh penjaga.`,
+    traits: [['Penyayang', 'Sabar', 'Optimis'], ['Alami', 'Gentle', 'Tenang'], ['Protektif', 'Bijak', 'Misterius']],
   },
   {
-    username: 'magnus_iron',
-    displayName: 'Magnus Ironforge',
-    email: 'magnus@demo.enjarole',
-    bio: 'Pandai besi kerdil yang membuat senjata legendaris.',
-    backstory: 'Di bengkel bawah tanah Forgeheart, Magnus menempa benda-benda ajaib untuk para pahlawan. Setiap paluannya membawa mantra kuno klan Ironforge.',
-    personalityTraits: ['Tekun', 'Jujur', 'Pemarah'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=magnus_iron',
+    role: 'Pemburu',
+    bio: (place: string) => `Pemburu hadiah dari ${place} yang tidak pernah melewatkan jejak.`,
+    backstory: (name: string, place: string) =>
+      `Setelah meninggalkan ${place}, ${name} memilih hidup bebas mengejar target paling berbahaya di benua.`,
+    traits: [['Tajam', 'Mandiri', 'Penuh perhitungan'], ['Fokus', 'Dingin', 'Tekun'], ['Cepat', 'Jeli', 'Disiplin']],
   },
   {
-    username: 'yuki_frost',
-    displayName: 'Yuki Frost',
-    email: 'yuki@demo.enjarole',
-    bio: 'Penyihir es dari tanah salju abadi.',
-    backstory: 'Yuki adalah satu-satunya penyintas desa yang membeku oleh kutukan naga es. Ia berkelana mencari cara mematahkan kutukan itu tanpa kehilangan kekuatannya.',
-    personalityTraits: ['Dingin', 'Tegas', 'Setia'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=yuki_frost',
-  },
-  {
-    username: 'rafael_cross',
-    displayName: 'Rafael Cross',
-    email: 'rafael@demo.enjarole',
-    bio: 'Pemburu hadiah yang tidak pernah melewatkan jejak.',
-    backstory: 'Rafael pernah menjadi tentara bayaran kerajaan selatan. Setelah perang berakhir, ia memilih hidup bebas mengejar target-target paling berbahaya di benua.',
-    personalityTraits: ['Tajam', 'Mandiri', 'Penuh perhitungan'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=rafael_cross',
-  },
-  {
-    username: 'mira_leaf',
-    displayName: 'Mira Sunleaf',
-    email: 'mira@demo.enjarole',
-    bio: 'Druid muda penjaga hutan Verdant Reach.',
-    backstory: 'Mira bisa berbicara dengan roh pohon. Ia memimpin kawanan rubah kecil yang membantunya mengawasi ancaman terhadap hutan suci.',
-    personalityTraits: ['Alami', 'Gentle', 'Waswas'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=mira_leaf',
-  },
-  {
-    username: 'dante_shade',
-    displayName: 'Dante Nightshade',
-    email: 'dante@demo.enjarole',
-    bio: 'Ahli sihir gelap yang mencari keseimbangan antara hidup dan mati.',
-    backstory: 'Dante diusir dari akademi sihir karena eksperimen nekromansinya. Ia percaya kematian bukan akhir, melainkan gerbang yang harus dipahami.',
-    personalityTraits: ['Gelap', 'Filosofis', 'Introvert'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=dante_shade',
-  },
-  {
-    username: 'aria_star',
-    displayName: 'Aria Celestine',
-    email: 'aria@demo.enjarole',
-    bio: 'Bard perjalanan yang menyimpan cerita dari setiap kota.',
-    backstory: 'Aria mengembara dengan lute ajaibnya, Starwhisper. Lagunya bisa mengingatkan orang pada kenangan yang terlupakan—atau menghapusnya untuk selamanya.',
-    personalityTraits: ['Karismatik', 'Bebas', 'Penasaran'],
-    avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=aria_star',
+    role: 'Bard',
+    bio: (place: string) => `Pengembara dari ${place} yang menyimpan cerita dari setiap kota.`,
+    backstory: (name: string, place: string) =>
+      `${name} mengembara keluar dari ${place} dengan alat musik ajaib yang bisa mengingatkan kenangan terlupakan.`,
+    traits: [['Karismatik', 'Bebas', 'Penasaran'], ['Humoris', 'Empati', 'Ekspresif'], ['Sosial', 'Kreatif', 'Impulsif']],
   },
 ];
 
+const places = [
+  'benteng utara', 'menara Silverveil', 'guild bayangan', 'hutan Verdant Reach', 'Forgeheart',
+  'tanah salju abadi', 'kota pelabuhan selatan', 'lembah Emerald Veil', 'kuburan kuno', 'pasar malam',
+  'desa pegunungan', 'pulau kabut', 'kastil terapung', 'gua kristal', 'rawa senja',
+];
+
 const samplePosts = [
-  'Hari ini latihan pedang di pelataran benteng. Otot masih pegal, tapi semangat membara! ⚔️',
+  'Hari ini latihan pedang di pelataran benteng. Otot masih pegal, tapi semangat membara!',
   'Ramuan bulan purnama akhirnya jadi. Warnanya indah seperti cahaya perak.',
   'Berhasil menyelinap ke gudang bandit tanpa ketahuan. Misi selesai, bayaran menunggu.',
   'Menyembuhkan penduduk desa yang terkena racun jamur. Syukurlah semuanya selamat.',
   'Pedang baru selesai ditempa! Tiga hari tiga malam tanpa tidur. Hasilnya memuaskan.',
   'Salju turun lebih tebal dari biasanya. Ada sesuatu yang bergerak di balik badai.',
-  'Target berhasil ditangkap setelah pengejaran 40 km. Tidak ada yang lari dari jejakku.',
+  'Target berhasil ditangkap setelah pengejaran panjang. Tidak ada yang lari dari jejakku.',
   'Pohon elder memberi tahu ada perambah di utara hutan. Aku sudah mengirim peringatan.',
   'Malam ini meditasi di kuburan kuno. Roh-roh di sini punya banyak cerita untuk didengar.',
   'Pertunjukan di tavern kota pelabuhan berjalan hebat! Hadiahnya: cerita legenda naga.',
   'Bertemu dengan pedagang aneh di pasar. Dia menjual peta ke dungeon yang belum terpetakan.',
-  'Konstelasi Orion terlihat jelas malam ini. Pertanda awal musim petualangan baru.',
+  'Konstelasi terlihat jelas malam ini. Pertanda awal musim petualangan baru.',
 ];
 
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function pick<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function generateRandomUsers(count: number): SampleUser[] {
+  const usedUsernames = new Set<string>();
+  const users: SampleUser[] = [];
+
+  const names = shuffle(firstNames);
+  const tags = shuffle(epithets);
+
+  for (let i = 0; i < count; i++) {
+    const firstName = names[i % names.length];
+    const epithet = tags[i % tags.length];
+    let username = `${firstName.toLowerCase()}_${epithet}`;
+
+    let suffix = 1;
+    while (usedUsernames.has(username)) {
+      username = `${firstName.toLowerCase()}_${epithet}${suffix}`;
+      suffix += 1;
+    }
+    usedUsernames.add(username);
+
+    const archetype = pick(archetypes);
+    const place = pick(places);
+    const displayName = `${firstName} ${epithet.charAt(0).toUpperCase()}${epithet.slice(1)}`;
+    const traits = pick(archetype.traits);
+
+    users.push({
+      username,
+      displayName,
+      email: `${username}@${DEMO_EMAIL_DOMAIN}`,
+      bio: archetype.bio(place),
+      backstory: archetype.backstory(firstName, place),
+      personalityTraits: traits,
+      avatarUrl: `https://api.dicebear.com/9.x/adventurer/png?seed=${username}`,
+    });
+  }
+
+  return users;
+}
+
+async function resetDemoRelations(characterIds: string[]) {
+  if (characterIds.length === 0) return;
+
+  await prisma.like.deleteMany({ where: { characterId: { in: characterIds } } });
+  await prisma.comment.deleteMany({ where: { characterId: { in: characterIds } } });
+  await prisma.post.deleteMany({ where: { characterId: { in: characterIds } } });
+  await prisma.follow.deleteMany({
+    where: {
+      OR: [
+        { followerId: { in: characterIds } },
+        { followingId: { in: characterIds } },
+      ],
+    },
+  });
+}
+
 async function main() {
+  const sampleUsers = generateRandomUsers(10);
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12);
   const createdIds: string[] = [];
 
-  console.log('🌱 Seeding 10 sample users...\n');
+  const existingDemoUsers = await prisma.character.findMany({
+    where: { email: { endsWith: `@${DEMO_EMAIL_DOMAIN}` } },
+    select: { id: true },
+  });
+  await resetDemoRelations(existingDemoUsers.map((user) => user.id));
+
+  console.log('🌱 Seeding 10 random demo users...\n');
 
   for (const user of sampleUsers) {
     const character = await prisma.character.upsert({
       where: { email: user.email },
       update: {
+        username: user.username,
         displayName: user.displayName,
         bio: user.bio,
         backstory: user.backstory,
@@ -146,7 +202,13 @@ async function main() {
     console.log(`  ✓ @${character.username} — ${character.displayName}`);
   }
 
-  // Sample posts (1–2 per user, random)
+  const staleDemoUsers = existingDemoUsers.filter((user) => !createdIds.includes(user.id));
+  if (staleDemoUsers.length > 0) {
+    await prisma.character.deleteMany({
+      where: { id: { in: staleDemoUsers.map((user) => user.id) } },
+    });
+  }
+
   console.log('\n📝 Creating sample posts...');
   for (let i = 0; i < createdIds.length; i++) {
     const postCount = 1 + (i % 2);
@@ -164,23 +226,15 @@ async function main() {
     }
   }
 
-  // Random follows
   console.log('🔗 Creating random follows...');
   for (let i = 0; i < createdIds.length; i++) {
     const targets = createdIds.filter((_, idx) => idx !== i);
     const followCount = 2 + (i % 3);
-    const shuffled = targets.sort(() => Math.random() - 0.5).slice(0, followCount);
+    const shuffled = shuffle(targets).slice(0, followCount);
 
     for (const followingId of shuffled) {
-      await prisma.follow.upsert({
-        where: {
-          followerId_followingId: {
-            followerId: createdIds[i],
-            followingId,
-          },
-        },
-        update: {},
-        create: {
+      await prisma.follow.create({
+        data: {
           followerId: createdIds[i],
           followingId,
         },
@@ -191,7 +245,7 @@ async function main() {
   console.log('\n✅ Seed selesai!\n');
   console.log('Login semua akun demo dengan:');
   console.log(`  Password: ${DEMO_PASSWORD}\n`);
-  console.log('Akun contoh:');
+  console.log('Akun yang dibuat:');
   for (const user of sampleUsers) {
     console.log(`  ${user.email}  →  @${user.username}`);
   }

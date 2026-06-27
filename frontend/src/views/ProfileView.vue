@@ -8,7 +8,7 @@ import type { Character, Post } from '@/types';
 import Avatar from '@/components/Avatar.vue';
 import FollowListModal from '@/components/FollowListModal.vue';
 import { Squares2X2Icon, ListBulletIcon, PlayIcon } from '@heroicons/vue/24/solid';
-import { isVideoUrl } from '@/utils';
+import { isVideoUrl, resolveMediaUrl } from '@/utils';
 
 const route = useRoute();
 const router = useRouter();
@@ -158,7 +158,7 @@ watch(() => route.params.username, () => {
       >
         <video
           v-if="post.mediaUrls?.length && isVideoUrl(post.mediaUrls[0] as string)"
-          :src="post.mediaUrls[0] as string"
+          :src="resolveMediaUrl(post.mediaUrls[0] as string) ?? ''"
           class="h-full w-full object-cover"
           muted
           playsinline
@@ -166,7 +166,7 @@ watch(() => route.params.username, () => {
         />
         <img
           v-else-if="post.mediaUrls?.length"
-          :src="post.mediaUrls[0] as string"
+          :src="resolveMediaUrl(post.mediaUrls[0] as string) ?? ''"
           class="h-full w-full object-cover"
           loading="lazy"
         />

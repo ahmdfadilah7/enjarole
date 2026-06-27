@@ -21,6 +21,7 @@ import {
 } from '@heroicons/vue/24/outline';
 import RightSidebar from '@/components/RightSidebar.vue';
 import SidebarSearch from '@/components/SidebarSearch.vue';
+import { resolveMediaUrl } from '@/utils';
 
 const auth = useAuthStore();
 const route = useRoute();
@@ -98,7 +99,7 @@ function isNavActive(itemTo: string) {
 
 function profileAvatarUrl(item: { isProfile?: boolean }) {
   if (!item.isProfile || !auth.character?.avatarUrl) return null;
-  return auth.character.avatarUrl;
+  return resolveMediaUrl(auth.character.avatarUrl);
 }
 
 function handleCreatePost() {
@@ -316,10 +317,20 @@ function onPostCreated() {
             <HomeIcon class="mb-0.5 h-6 w-6 stroke-[2.5]" />
             Feed
           </RouterLink>
-          <RouterLink to="/login" class="flex flex-1 flex-col items-center px-2 py-1.5 text-[10px] font-bold text-neo-black/50">
+          <RouterLink
+            to="/login"
+            class="flex flex-1 flex-col items-center px-2 py-1.5 text-[10px] font-bold"
+            :class="route.path === '/login' ? 'text-neo-black' : 'text-neo-black/50'"
+          >
+            <UserCircleIcon class="mb-0.5 h-6 w-6 shrink-0 stroke-[2.5]" />
             Masuk
           </RouterLink>
-          <RouterLink to="/register" class="flex flex-1 flex-col items-center px-2 py-1.5 text-[10px] font-bold text-neo-black/50">
+          <RouterLink
+            to="/register"
+            class="flex flex-1 flex-col items-center px-2 py-1.5 text-[10px] font-bold"
+            :class="route.path === '/register' ? 'text-neo-black' : 'text-neo-black/50'"
+          >
+            <PlusIcon class="mb-0.5 h-6 w-6 shrink-0 stroke-[2.5]" />
             Daftar
           </RouterLink>
         </template>

@@ -13,19 +13,16 @@
       @scroll="onScroll"
     >
       <div
-        v-for="(url, i) in urls"
+        v-for="(url, i) in resolvedUrls"
         :key="i"
         class="relative w-full shrink-0 snap-center"
       >
-        <video
+        <FeedVideoPlayer
           v-if="isVideoUrl(url)"
-          :ref="(el) => setVideoRef(el as HTMLVideoElement | null, i)"
+          :ref="(el) => setPlayerRef(el, i)"
           :src="url"
-          class="aspect-square w-full object-cover"
-          controls
-          playsinline
-          preload="metadata"
-          @play="onVideoPlay(i)"
+          :active="i === activeIndex"
+          :player-id="`${url}-${i}`"
         />
         <img
           v-else
@@ -35,12 +32,6 @@
           :alt="`Media ${i + 1}`"
           draggable="false"
         />
-        <span
-          v-if="isVideoUrl(url)"
-          class="pointer-events-none absolute left-3 top-3 neo-tag text-[10px]"
-        >
-          Video
-        </span>
       </div>
     </div>
 
@@ -80,28 +71,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
-import { isVideoUrl } from '@/utils';
+import FeedVideoPlayer from '@/components/FeedVideoPlayer.vue';
+import { isVideoUrl, resolveMediaUrl } from '@/utils';
 
-defineProps<{ urls: string[] }>();
+const props = defineProps<{ urls: string[] }>();
+
+const resolvedUrls = computed(() => props.urls.map((url) => resolveMediaUrl(url) ?? url));
 
 const trackRef = ref<HTMLElement | null>(null);
 const activeIndex = ref(0);
-const videoRefs = ref<(HTMLVideoElement | null)[]>([]);
+const playerRefs = ref<(InstanceType<typeof FeedVideoPlayer> | null)[]>([]);
 
-function setVideoRef(el: HTMLVideoElement | null, index: number) {
-  videoRefs.value[index] = el;
+function setPlayerRef(el: unknown, index: number) {
+  playerRefs.value[index] = el as InstanceType<typeof FeedVideoPlayer> | null;
 }
 
 function pauseAllVideos() {
-  videoRefs.value.forEach((video) => video?.pause());
-}
-
-function onVideoPlay(active: number) {
-  videoRefs.value.forEach((video, i) => {
-    if (i !== active) video?.pause();
-  });
+  playerRefs.value.forEach((player) => player?.pause());
 }
 
 function onScroll() {

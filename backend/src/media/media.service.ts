@@ -44,4 +44,20 @@ export class MediaService {
 
     return { uploadUrl, publicUrl };
   }
+
+  async uploadBuffer(buffer: Buffer, contentType: string, filename: string) {
+    const ext = filename.split('.').pop() || 'jpg';
+    const key = `uploads/${uuidv4()}.${ext}`;
+
+    await this.s3.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType || 'application/octet-stream',
+      }),
+    );
+
+    return { publicUrl: `${this.publicUrl}/${key}` };
+  }
 }

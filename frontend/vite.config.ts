@@ -24,6 +24,11 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
       },
+      '/media-files': {
+        target: 'http://127.0.0.1:9000',
+        changeOrigin: true,
+        rewrite: (path) => `/enjarole-media${path.replace(/^\/media-files/, '')}`,
+      },
     },
   },
 });

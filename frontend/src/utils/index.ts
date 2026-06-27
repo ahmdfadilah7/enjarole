@@ -1,15 +1,44 @@
 import api from '@/api/client';
 
-export async function uploadFile(file: File): Promise<string> {
-  const { data } = await api.post<{ uploadUrl: string; publicUrl: string }>('/media/upload', {
-    filename: file.name,
-    contentType: file.type,
-  });
+const MINIO_MEDIA_RE = /^https?:\/\/[^/]+\/enjarole-media\/(.+)$/;
 
-  await fetch(data.uploadUrl, {
-    method: 'PUT',
-    body: file,
-    headers: { 'Content-Type': file.type },
+/** Rewrite MinIO URLs — dev selalu lewat proxy Vite (sama di desktop & HP). */
+export function resolveMediaUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const match = url.match(MINIO_MEDIA_RE);
+  if (!match) return url;
+
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    return `/media-files/${match[1]}`;
+  }
+
+  return url;
+}
+
+export function canPlayWebM(): boolean {
+  if (typeof document === 'undefined') return true;
+  const video = document.createElement('video');
+  return (
+    video.canPlayType('video/webm; codecs="vp9"') !== '' ||
+    video.canPlayType('video/webm; codecs="vp8, vorbis"') !== '' ||
+    video.canPlayType('video/webm') !== ''
+  );
+}
+
+export function isWebmUrl(url: string): boolean {
+  return /\.webm(\?|$)/i.test(url);
+}
+
+export function isCameraAvailable(): boolean {
+  return !!(typeof window !== 'undefined' && window.isSecureContext && navigator.mediaDevices?.getUserMedia);
+}
+
+export async function uploadFile(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { data } = await api.post<{ publicUrl: string }>('/media/upload-file', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
 
   return data.publicUrl;

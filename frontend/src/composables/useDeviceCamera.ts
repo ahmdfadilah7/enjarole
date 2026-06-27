@@ -97,6 +97,10 @@ export function useDeviceCamera() {
   async function start(videoEl: HTMLVideoElement, withAudio: boolean) {
     error.value = '';
     stop();
+    if (!window.isSecureContext) {
+      error.value = 'Kamera hanya tersedia di HTTPS atau localhost. Gunakan unggah file.';
+      return false;
+    }
     if (!navigator.mediaDevices?.getUserMedia) {
       error.value = 'Browser tidak mendukung kamera';
       return false;

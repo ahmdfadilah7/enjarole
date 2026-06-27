@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import type { StoryGroup } from '@/types';
 import Avatar from './Avatar.vue';
-import { getStoryDuration, formatRelativeTime } from '@/utils';
+import { getStoryDuration, formatRelativeTime, resolveMediaUrl } from '@/utils';
 import { XMarkIcon, PhotoIcon, VideoCameraIcon, PencilSquareIcon } from '@heroicons/vue/24/solid';
 
 const props = defineProps<{ groups: StoryGroup[]; startIndex?: number }>();
@@ -38,6 +38,8 @@ const storyDurationMs = computed(() => {
 const isVideo = computed(() => currentStory.value?.mediaType === 'video');
 const isText = computed(() => currentStory.value?.mediaType === 'text');
 const isImage = computed(() => currentStory.value?.mediaType === 'image');
+
+const resolvedMediaUrl = computed(() => resolveMediaUrl(currentStory.value?.mediaUrl ?? null));
 
 const overlayTextClass = computed(() => {
   const bg = currentStory.value?.backgroundColor;
@@ -337,9 +339,9 @@ onUnmounted(() => {
 
             <!-- Video -->
             <video
-              v-else-if="isVideo && currentStory.mediaUrl"
+              v-else-if="isVideo && resolvedMediaUrl"
               ref="videoRef"
-              :src="currentStory.mediaUrl"
+              :src="resolvedMediaUrl"
               class="h-full w-full object-cover"
               playsinline
               muted
@@ -349,8 +351,8 @@ onUnmounted(() => {
 
             <!-- Image with Ken Burns -->
             <img
-              v-else-if="currentStory.mediaUrl"
-              :src="currentStory.mediaUrl"
+              v-else-if="resolvedMediaUrl"
+              :src="resolvedMediaUrl"
               class="story-ken-burns h-full w-full object-cover"
               alt="Story"
             />

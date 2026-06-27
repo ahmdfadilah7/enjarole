@@ -2,8 +2,8 @@
   <div class="relative inline-block">
     <div v-if="hasStory" class="story-ring">
       <img
-        v-if="character.avatarUrl"
-        :src="character.avatarUrl"
+        v-if="avatarSrc"
+        :src="avatarSrc"
         :alt="character.displayName"
         class="neo-avatar"
         :class="sizeClasses[size || 'md']"
@@ -18,8 +18,8 @@
     </div>
     <template v-else>
       <img
-        v-if="character.avatarUrl"
-        :src="character.avatarUrl"
+        v-if="avatarSrc"
+        :src="avatarSrc"
         :alt="character.displayName"
         class="neo-avatar"
         :class="sizeClasses[size || 'md']"
@@ -36,14 +36,17 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { Character } from '@/types';
-import { getInitials } from '@/utils';
+import { getInitials, resolveMediaUrl } from '@/utils';
 
-defineProps<{
+const props = defineProps<{
   character: Character;
   size?: 'sm' | 'md' | 'lg';
   hasStory?: boolean;
 }>();
+
+const avatarSrc = computed(() => resolveMediaUrl(props.character.avatarUrl));
 
 const sizeClasses = {
   sm: 'h-8 w-8 text-xs',
